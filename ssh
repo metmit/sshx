@@ -31,12 +31,30 @@ if [ ! -d "${DIR_NAME}" ]; then
     mkdir -p ${DIR_NAME}
 fi
 
-FILE_NAME=`echo -n "${CONNECT_NAME}" | md5sum | cut -d ' ' -f1`".sin"
+sinMd5() {
+    if `command -v md5sum > /dev/null`; then
+        # result=`echo -n "${1}" | /usr/local/bin/md5sum | cut -d ' ' -f1`
+        result=`echo -n "${1}" | md5sum | cut -d ' ' -f1`
+        #echo -n $SECRET_KEY | md5sum| tr a-z A-Z | awk '{print $1}'
+    else
+        result=''
+        str=${1}
+        while [ ${#result} -lt 32 ];do
+            result=${result}`echo -n "${str}" | xxd -ps -c 250`
+            str=$result
+        done  
+    fi
+    echo $result
+    return 0
+}
+
+FILE_NAME=`sinMd5 ${CONNECT_NAME}`".sin"
 FULL_FILE="${DIR_NAME}${FILE_NAME}"
 
 sinEncode() {
     # 加密密钥
-    secret_hex=`echo -n $SECRET_KEY | md5sum| tr a-z A-Z | awk '{print $1}'`
+    secret_hex=`sinMd5 ${SECRET_KEY}`
+    secret_hex=`echo ${secret_hex}| tr a-z A-Z`
     secret=`echo "ibase=16; ${secret_hex}" | bc`
 
     # 加密账号密码
@@ -62,7 +80,8 @@ sinEncode() {
 sinDecode() {
     contetn=$1
     # 加密密钥
-    secret_hex=`echo -n $SECRET_KEY | md5sum| tr a-z A-Z | awk '{print $1}'`
+    secret_hex=`sinMd5 ${SECRET_KEY}`
+    secret_hex=`echo ${secret_hex}| tr a-z A-Z`
     secret=`echo "ibase=16; ${secret_hex}" | bc`
 
     pravite=`echo "ibase=10;obase=10; ${contetn}-${secret}"|bc`
