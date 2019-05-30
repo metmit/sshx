@@ -54,7 +54,7 @@ FULL_FILE="${DIR_NAME}${FILE_NAME}"
 sinEncode() {
     # 加密密钥
     secret_hex=`sinMd5 ${SECRET_KEY}`
-    secret_hex=`echo ${secret_hex}| tr a-z A-Z`
+    secret_hex=`echo -n ${secret_hex}| tr a-z A-Z`
     secret=`echo "ibase=16; ${secret_hex}" | bc`
 
     # 加密账号密码
@@ -63,8 +63,8 @@ sinEncode() {
     user=`echo "${3}" |base64`
     pass=`echo "${4}" |base64`
 
-    # 转16进制
-    hex=`echo "${host}@${port}@${user}@${pass}" | xxd -ps -u -c 5000`
+    # 转16进制 添加-n 避免换行符转 0x0A
+    hex=`echo -n "${host}@${port}@${user}@${pass}" | xxd -ps -u -c 5000`
     
     # 转10进制
     #info=`echo "ibase=16;obase=10;${hex}" | bc`
@@ -78,16 +78,16 @@ sinEncode() {
 }
 
 sinDecode() {
-    contetn=$1
+    content=$1
     # 加密密钥
     secret_hex=`sinMd5 ${SECRET_KEY}`
-    secret_hex=`echo ${secret_hex}| tr a-z A-Z`
+    secret_hex=`echo -n ${secret_hex}| tr a-z A-Z`
     secret=`echo "ibase=16; ${secret_hex}" | bc`
 
-    pravite=`echo "ibase=10;obase=10; ${contetn}-${secret}"|bc`
+    private=`echo "ibase=10;obase=10; ${content}-${secret}"|bc`
     
     # decode
-    base=`echo "ibase=10; obase=16; ${pravite}" | bc`
+    base=`echo "ibase=10; obase=16; ${private}" | bc`
     base=`echo $base | xxd -ps -u -r`
     echo $base
     return 0
@@ -170,7 +170,6 @@ sinConnectSSH() {
     user=`echo -n "${base}" | cut -d '@' -f3| base64 -D`
     port=`echo -n "${base}" | cut -d '@' -f2| base64 -D`
     host=`echo -n "${base}" | cut -d '@' -f1| base64 -D`
-    
     expect -c "
         set timeout -1;
         spawn ssh -o StrictHostKeyChecking=no -p $port $user@$host;
