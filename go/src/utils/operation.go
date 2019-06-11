@@ -10,13 +10,15 @@ import (
 	"github.com/google/goexpect"
 	"github.com/google/goterm/term"
 	"golang.org/x/crypto/ssh"
-	"google.golang.org/grpc/codes"
+	"regexp"
+	"syscall"
+
+	//"google.golang.org/grpc/codes"
 	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -145,7 +147,10 @@ func SinConSSH(args map[string]string) {
 
 	//connectCommand(sHost, sPort, sUser, sPass)
 
-	connectSession(sHost, sPort, sUser, sPass)
+	//connectSession(sHost, sPort, sUser, sPass) //可以运行，但很糟糕
+
+	connectSysCall(sHost, sPort, sUser, sPass)
+
 	//connect(sHost, sPort, sUser, sPass)
 }
 
@@ -235,24 +240,62 @@ func connect(addr string, port string, user string, pass string) {
 	pass = pass + "\n"
 	fmt.Println(pass)
 
-	_, error := e.ExpectBatch([]expect.Batcher{
-		//&expect.BExpT{"password",8},
-		//&expect.BSnd{pass},
-		//&expect.BExp{"olakar@router>"},
-		//&expect.BSnd{ "show interface description\n"},
-		//&expect.BExp{ "root@router>"},
-		&expect.BCas{[]expect.Caser{
-			&expect.Case{R: regexp.MustCompile(`Welcome`), S:"pwd",T: expect.OK()},
-			&expect.Case{R: regexp.MustCompile(`Login: `), S: user,
-				T: expect.Continue(expect.NewStatus(codes.PermissionDenied, "wrong username")), Rt: 3},
-			&expect.Case{R: regexp.MustCompile(`Password: `), S: pass, T: expect.Next(), Rt: 1},
-			&expect.Case{R: regexp.MustCompile(`password`), S: pass,
-				T: expect.Continue(expect.NewStatus(codes.PermissionDenied, "wrong password")), Rt: 1},
-		}},
-	}, timeout)
+	var stdin string
 
-	fmt.Println(error)
+	for {
+		promptRE := regexp.MustCompile(".*")
+		result, _, _ := e.Expect(promptRE, timeout)
+		fmt.Printf("%s", result)
+
+		fmt.Scanln(&stdin)
+
+		fmt.Printf("aaa %s bbb", stdin)
+
+		e.Send(stdin + "\r\n")
+		stdin = ""
+	}
+
+	//aa, error := e.ExpectBatch([]expect.Batcher{
+	//	&expect.BCas{[]expect.Caser{
+	//		&expect.Case{R: regexp.MustCompile(`Welcome`), S:"pwd",T: expect.OK()},
+	//		&expect.Case{R: regexp.MustCompile(`Login: `), S: user,
+	//			T: expect.Continue(expect.NewStatus(codes.PermissionDenied, "wrong username")), Rt: 3},
+	//		&expect.Case{R: regexp.MustCompile(`Password: `), S: pass, T: expect.Next(), Rt: 1},
+	//		&expect.Case{R: regexp.MustCompile(`password`), S: pass,
+	//			T: expect.Continue(expect.NewStatus(codes.PermissionDenied, "wrong password")), Rt: 1},
+	//	}},
+	//}, timeout)
+	//fmt.Println(aa)
+	//fmt.Println(error)
+
 	fmt.Println(term.Greenf("All done"))
+}
+
+func connectSysCall(addr string, port string, user string, pass string) {
+
+	binary, lookErr := exec.LookPath("bash")
+	if lookErr != nil {
+		panic(lookErr)
+	}
+
+	//binary = "/usr/bin/expect"
+	params := `/usr/bin/expect -c "
+        set timeout -1;
+        spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p `+port+` `+user+`@`+addr+`; 
+        expect {
+            *assword:* { 
+                send `+pass+`\r; 
+            }
+        }
+        interact 
+    "`
+
+	args := []string{binary, "-c", params}
+	env := os.Environ()
+	execErr := syscall.Exec(binary, args, env)
+	if execErr != nil {
+		panic(execErr)
+	}
 }
 
 //加密
