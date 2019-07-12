@@ -279,16 +279,8 @@ func connectSysCall(addr string, port string, user string, pass string) {
 	}
 
 	//binary = "/usr/bin/expect"
-	params := `/usr/bin/expect -c "
-        set timeout -1;
-        spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p `+port+` `+user+`@`+addr+`; 
-        expect {
-            *assword:* { 
-                send `+pass+`\r; 
-            }
-        }
-        interact 
-    "`
+	params :=`/usr/bin/expect -c 'set timeout -1;spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p `+port+` `+user+`@`+addr+`;`
+	params += `expect "*password:";send "`+pass+`\r";interact;'`
 
 	args := []string{binary, "-c", params}
 	env := os.Environ()

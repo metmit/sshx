@@ -170,16 +170,8 @@ sinConnectSSH() {
     user=`echo -n "${base}" | cut -d '@' -f3| base64 -D`
     port=`echo -n "${base}" | cut -d '@' -f2| base64 -D`
     host=`echo -n "${base}" | cut -d '@' -f1| base64 -D`
-    expect -c "
-        set timeout -1;
-        spawn ssh -o StrictHostKeyChecking=no -p $port $user@$host;
-        expect {
-            *assword:* {
-                send $pass\r;
-            }
-        }
-        interact
-    "
+
+    /usr/bin/expect -c 'set timeout -1;spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p '$port" $user@$host"';expect "*password:";send "'$pass'\r";interact;'
 }
 
 if [ "$OPERATION" == "add" ]; then
