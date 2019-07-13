@@ -96,7 +96,6 @@ func SinAddSSH(args map[string]string) {
 	return
 }
 
-
 //删除链接
 func SinDelSSH(args map[string]string) {
 
@@ -133,7 +132,6 @@ func SinConSSH(args map[string]string) {
 		return
 	}
 
-
 	host, _ := base64.StdEncoding.DecodeString(split[0])
 	port, _ := base64.StdEncoding.DecodeString(split[1])
 	user, _ := base64.StdEncoding.DecodeString(split[2])
@@ -143,7 +141,6 @@ func SinConSSH(args map[string]string) {
 	sPort := strings.Replace(string(port), "\n", "", 1)
 	sUser := strings.Replace(string(user), "\n", "", 1)
 	sPass := strings.Replace(string(pass), "\n", "", 1)
-
 
 	//connectCommand(sHost, sPort, sUser, sPass)
 
@@ -159,7 +156,7 @@ func connectCommand(addr string, port string, user string, pass string) {
 	var stdout bytes.Buffer
 	//stdin := bytes.NewBuffer(nil)
 
-	command := "expect -c \"set timeout -1;spawn ssh -o StrictHostKeyChecking=no -p "+port+" "+user+"@"+addr+";expect {*assword:* {send "+pass+"\\r;}}\ninteract\""
+	command := "expect -c \"set timeout -1;spawn ssh -o StrictHostKeyChecking=no -p " + port + " " + user + "@" + addr + ";expect {*assword:* {send " + pass + "\\r;}}\ninteract\""
 	cmd := exec.Command("/bin/bash", "-c", command)
 
 	//command := "ssh -o StrictHostKeyChecking=no -p "+port+" "+user+"@"+addr
@@ -273,21 +270,58 @@ func connect(addr string, port string, user string, pass string) {
 
 func connectSysCall(addr string, port string, user string, pass string) {
 
-	binary, lookErr := exec.LookPath("bash")
+	//1. 设置环境变量
+	os.Setenv("SIN_TERM_HOST", addr)
+	os.Setenv("SIN_TERM_PORT", port)
+	os.Setenv("SIN_TERM_USER", user)
+	os.Setenv("SIN_TERM_PASS", pass)
+
+	//2. 生成临时文件
+	tempFile := createTempFile()
+
+	//3. 执行-f
+	params := cmdPath("expect") + ` -f ` + tempFile + ` && ` + cmdPath("rm") + ` -rf ` + tempFile
+
+	// exit 时无法删除
+	defer os.Remove(tempFile)
+
+	sh := cmdPath("sh")
+	args := []string{sh, "-c", params}
+	env := os.Environ()
+	_ = syscall.Exec(sh, args, env)
+}
+
+func createTempFile() string {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "sinTerm-*.exp")
+	if err != nil {
+		log.Fatal("Cannot create temporary file", err)
+	}
+
+	content := `#!` + cmdPath("expect") + ` -f  
+set timeout -1
+send_user " \n"
+spawn ` + cmdPath("ssh") + ` -o StrictHostKeyChecking=no -p $env(SIN_TERM_PORT) $env(SIN_TERM_USER)@$env(SIN_TERM_HOST);
+expect {
+"*yes/no" { send "yes\r"; exp_continue}
+"*password:" { send "$env(SIN_TERM_PASS)\r" }
+}
+interact`
+
+	// Example writing to the file
+	_, err = tmpFile.Write([]byte(content))
+	if err != nil {
+		log.Fatal("Failed to write to temporary file", err)
+	}
+
+	return tmpFile.Name()
+}
+
+func cmdPath(cmd string) string {
+	binary, lookErr := exec.LookPath(cmd)
 	if lookErr != nil {
 		panic(lookErr)
 	}
-
-	//binary = "/usr/bin/expect"
-	params :=`/usr/bin/expect -c 'set timeout -1;spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p `+port+` `+user+`@`+addr+`;`
-	params += `expect "*password:";send "`+pass+`\r";interact;'`
-
-	args := []string{binary, "-c", params}
-	env := os.Environ()
-	execErr := syscall.Exec(binary, args, env)
-	if execErr != nil {
-		panic(execErr)
-	}
+	return binary
 }
 
 //加密
@@ -318,7 +352,7 @@ func sinEncode(host string, port string, user string, pass string, args map[stri
 	//数字变成字符串
 	result := info.String()
 
-	return "v"+ common.VERSION +"v" + result
+	return "v" + common.VERSION + "v" + result
 }
 
 func sinDecode(content string, args map[string]string) string {
@@ -358,4 +392,3 @@ func sinMd5(str string) string {
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
 }
-
