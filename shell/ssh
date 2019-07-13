@@ -6,25 +6,43 @@ VERSION=1.0.0
 # 密码存储目录
 DIR_NAME=$HOME'/.siterm/'
 
+usage() {
+    echo "Usage:"
+    echo "  ssh [-n connect_name] [-s secret_key] [-o operation] [-vh]"
+    echo "Description:"
+    echo "    connect_name : the global alias for this connection."
+    echo "    secret_key   : Encrypted key for this connection."
+    echo "    operation    : add,con or del"
+    exit -1
+}
+
+while getopts ":n:s:o:v:h:" opt
+do
+    case $opt in
+        n) CONNECT_NAME=$OPTARG ;;
+        s) SECRET_KEY=$OPTARG ;;
+        o) OPERATION=$OPTARG ;;
+        v) echo $VERSION ;;
+        h) usage ;;
+        ?) usage ;;
+    esac
+done
+
 # 指定连接名称
-if [ ! -n "$1" ] ;then
+if [ ! -n "$CONNECT_NAME" ] ;then
     echo "Has not connect name!"
     exit 1
 fi
-CONNECT_NAME=$1
 
 # 指定密钥
-if [ ! -n "$2" ] ;then
+if [ ! -n "$SECRET_KEY" ] ;then
     echo "Has not secret key!"
     exit 1
 fi
-SECRET_KEY=$2
 
 # 操作
-if [ ! -n "$3" ] ;then
+if [ ! -n "$OPERATION" ] ;then
     OPERATION="con"
-else
-    OPERATION=$3
 fi
 
 if [ ! -d "${DIR_NAME}" ]; then
