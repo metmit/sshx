@@ -160,8 +160,6 @@ sinConnectSSH() {
 
     base=`sinDecode ${content}`
 
-    echo $base;
-
     pass=`echo -n "${base}" | cut -d '@' -f4 | base64 -D`
     if [ -z "$pass" ]; then 
         echo "Has Not Password"
@@ -173,7 +171,6 @@ sinConnectSSH() {
 
     export SIN_HOST=$host && export SIN_PORT=$port && export SIN_USER=$user && export SIN_PASS=$pass
     cd $(cd $(dirname $0); pwd) && expect -f ./exp
-    #/usr/bin/expect -c 'set timeout -1;spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p '$port" $user@$host"';expect "*password:";send "'$pass'\r";interact;'
 }
 
 if [ "$OPERATION" == "add" ]; then
