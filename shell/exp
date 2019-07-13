@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f  
+
+set timeout -1
+
+send_user " \n"
+
+spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p $env(SIN_PORT) $env(SIN_USER)@$env(SIN_HOST);
+
+# expect_before "(yes/no)\\?" {
+    # send "yes\r"}
+expect {
+"*yes/no" { send "yes\r"; exp_continue}
+"*password:" { send "$env(SIN_PASS)\r" }
+}
+
+interact
