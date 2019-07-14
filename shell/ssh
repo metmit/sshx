@@ -49,7 +49,7 @@ sxEncode() {
     result=`echo "ibase=10;obase=10;${secret}+${info}"|bc`
 
     # 拼接内容
-    echo "v${SFSSHX_VERSION}v${result}"
+    echo "${result}"
     return 0
 }
 
@@ -116,6 +116,7 @@ sxAddConfig() {
     
     # 获取密文
     result=`sxEncode ${params} $SFSSHX_SECRET_KEY`
+    result="v${SFSSHX_VERSION}v${result}"
 
     # 写入存储文件
     echo $result > $SFSSHX_FULL_FILE
@@ -149,10 +150,10 @@ sxConnect() {
     host=`echo -n "${base}" | cut -d '@' -f1| base64 --decode`
 
     # 连接
-    # export SFSSHX_SIN_HOST=$host && export SFSSHX_SIN_PORT=$port \
-    # && export SFSSHX_SIN_USER=$user && export SFSSHX_SIN_PASS=$pass \
-    # && cd $(cd $(dirname $0); pwd) \
-    # && expect -f ./exp
+    export SFSSHX_SIN_HOST=$host && export SFSSHX_SIN_PORT=$port \
+    && export SFSSHX_SIN_USER=$user && export SFSSHX_SIN_PASS=$pass \
+    && cd $(cd $(dirname $0); pwd) \
+    && expect -f ./exp
 }
 
 # 获取参数
