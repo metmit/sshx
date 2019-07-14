@@ -4,9 +4,11 @@
 SFSSHX_VERSION=1.0.0
 
 # 监测依赖
-command -v md5sum >/dev/null 2>&1 || { echo >&2 "I require [md5sum] but it's not installed.  Aborting."; exit 1; }
+command -v md5sum >/dev/null 2>&1 || { echo >&2 "[md5sum] is required, please install."; exit 1; }
+command -v expect >/dev/null 2>&1 || { echo >&2 "[expect] is required, please install."; exit 1; }
+command -v bc >/dev/null 2>&1 || { echo >&2 "[bc] is required, please install."; exit 1; }
 
-
+# 帮助
 usage() {
     echo "Usage:"
     echo "  ssh [-n connect_name] [-s secret_key] [-o operation] [-vh]"
@@ -30,7 +32,8 @@ sxStrHexDec() {
     echo $dec
 }
 
-sinEncode() {
+# 加密
+sxEncode() {
 
     # 获取10进制密钥
     secret=`sxStrHexDec $2`
@@ -49,7 +52,8 @@ sinEncode() {
     return 0
 }
 
-sinDecode() {
+# 解密
+sxDecode() {
 
     # 获取10进制密钥
     secret=`sxStrHexDec $2`
@@ -73,9 +77,10 @@ sinDecode() {
     return 0
 }
 
-sinAddSSH() {
+# 添加链接
+sxAddConfig() {
     if [ -f "${SFSSHX_FULL_FILE}" ];then
-        echo 'file already exist'
+        echo 'File already exist, add fail'
         exit 1
     fi
 
@@ -112,17 +117,17 @@ sinAddSSH() {
     params=`echo "${host}" |base64`"@"`echo "${port}" |base64`"@"`echo "${user}" |base64`"@"`echo "${password}" |base64`
     
     # 获取密文
-    result=`sinEncode ${params} $SFSSHX_SECRET_KEY`
+    result=`sxEncode ${params} $SFSSHX_SECRET_KEY`
 
     # 写入存储文件
     echo $result > $SFSSHX_FULL_FILE
-
     exit 0;
 }
 
-sinConnectSSH() {
+# 建立连接
+sxConnect() {
     if [ ! -f "${SFSSHX_FULL_FILE}" ];then
-        echo 'File dos not exist!'
+        echo 'File dos not exist, connect fail!'
         exit 1
     fi
     
@@ -130,25 +135,26 @@ sinConnectSSH() {
     content=`cat ${SFSSHX_FULL_FILE}`
 
     # 解密为字符串
-    base=`sinDecode ${content} ${SFSSHX_SECRET_KEY}`
+    base=`sxDecode ${content} ${SFSSHX_SECRET_KEY}`
 
     # 分割字符串
-    pass=`echo -n "${base}" | cut -d '@' -f4 | base64 -D`
+    pass=`echo -n "${base}" | cut -d '@' -f4 | base64 --decode`
     if [ -z "$pass" ]; then 
         echo "Has Not Password"
         exit 1
     fi
-    user=`echo -n "${base}" | cut -d '@' -f3| base64 -D`
-    port=`echo -n "${base}" | cut -d '@' -f2| base64 -D`
-    host=`echo -n "${base}" | cut -d '@' -f1| base64 -D`
+    user=`echo -n "${base}" | cut -d '@' -f3| base64 --decode`
+    port=`echo -n "${base}" | cut -d '@' -f2| base64 --decode`
+    host=`echo -n "${base}" | cut -d '@' -f1| base64 --decode`
 
     # 连接
-    export SFSSHX_SIN_HOST=$host && export SFSSHX_SIN_PORT=$port \
-    && export SFSSHX_SIN_USER=$user && export SFSSHX_SIN_PASS=$pass \
-    && cd $(cd $(dirname $0); pwd) \
-    && expect -f ./exp
+    # export SFSSHX_SIN_HOST=$host && export SFSSHX_SIN_PORT=$port \
+    # && export SFSSHX_SIN_USER=$user && export SFSSHX_SIN_PASS=$pass \
+    # && cd $(cd $(dirname $0); pwd) \
+    # && expect -f ./exp
 }
 
+# 获取参数
 while getopts ":n:s:o:v:h:" opt
 do
     case $opt in
@@ -168,10 +174,11 @@ if [ ! -n "$SFSSHX_CONNECT_NAME" ] ;then
 fi
 
 # 指定密钥
-if [ ! -n "$SFSSHX_SECRET_KEY" ] ;then
-    echo "Has not secret key!"
-    exit 1
-fi
+while [ ${#SFSSHX_SECRET_KEY} -eq 0 ]
+do
+    echo -n " type secret: "
+    read SFSSHX_SECRET_KEY
+    done
 
 # 操作
 if [ ! -n "$SFSSHX_OPERATION" ] ;then
@@ -190,12 +197,12 @@ fi
 SFSSHX_FULL_FILE="${SFSSHX_FOLDER_NAME}"`sxMd5sum ${SFSSHX_CONNECT_NAME}`".sx"
 
 if [ "$SFSSHX_OPERATION" == "add" ]; then
-    sinAddSSH
+    sxAddConfig
 elif [ "$SFSSHX_OPERATION" == "del" ]; then
-    echo '1'
+    echo 'del'
 elif [ "$SFSSHX_OPERATION" == "con" ]; then
-    sinConnectSSH
+    sxConnect
 else
-    echo "what?";
+    echo "what's your operation?";
 fi
 exit 0
