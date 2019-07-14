@@ -7,6 +7,7 @@ SFSSHX_VERSION=1.0.0
 command -v md5sum >/dev/null 2>&1 || { echo >&2 "[md5sum] is required, please install."; exit 1; }
 command -v expect >/dev/null 2>&1 || { echo >&2 "[expect] is required, please install."; exit 1; }
 command -v bc >/dev/null 2>&1 || { echo >&2 "[bc] is required, please install."; exit 1; }
+command -v ssh >/dev/null 2>&1 || { echo >&2 "[ssh] is required, please install."; exit 1; }
 
 # 帮助
 usage() {
@@ -60,10 +61,7 @@ sxDecode() {
 
     # 替换特殊字符
     content=$1
-    content=${content##*v}
-    content=${content//' '/''}
-    content=${content//'\'/''}
-
+    
     # 加密内容减密钥得到十进制密文
     private=`echo "ibase=10;obase=10; ${content}-${secret}"|bc`
     
@@ -133,6 +131,9 @@ sxConnect() {
     
     # 读文件内容
     content=`cat ${SFSSHX_FULL_FILE}`
+    content=${content##*v}
+    content=${content//' '/''}
+    content=${content//'\'/''}
 
     # 解密为字符串
     base=`sxDecode ${content} ${SFSSHX_SECRET_KEY}`

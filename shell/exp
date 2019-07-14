@@ -4,7 +4,7 @@ set timeout -1
 
 send_user " \n"
 
-spawn /usr/bin/ssh -o StrictHostKeyChecking=no -p $env(SFSSHX_SIN_PORT) $env(SFSSHX_SIN_USER)@$env(SFSSHX_SIN_HOST);
+spawn ssh -o StrictHostKeyChecking=no -p $env(SFSSHX_SIN_PORT) $env(SFSSHX_SIN_USER)@$env(SFSSHX_SIN_HOST);
 
 expect {
 "*yes/no" { send "yes\r"; exp_continue}
