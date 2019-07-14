@@ -3,6 +3,10 @@
 # 当前版本
 SFSSHX_VERSION=1.0.0
 
+# 监测依赖
+command -v md5sum >/dev/null 2>&1 || { echo >&2 "I require [md5sum] but it's not installed.  Aborting."; exit 1; }
+
+
 usage() {
     echo "Usage:"
     echo "  ssh [-n connect_name] [-s secret_key] [-o operation] [-vh]"
@@ -13,45 +17,29 @@ usage() {
     exit -1
 }
 
-# TODO
-sinMd5() {
-    if `command -v md5sum > /dev/null`; then
-        # result=`echo -n "${1}" | /usr/local/bin/md5sum | cut -d ' ' -f1`
-        result=`echo -n "${1}" | md5sum | cut -d ' ' -f1`
-        #echo -n $SECRET_KEY | md5sum| tr a-z A-Z | awk '{print $1}'
-    else
-        result=''
-        str=${1}
-        while [ ${#result} -lt 32 ];do
-            result=${result}`echo -n "${str}" | xxd -ps -c 250`
-            str=$result
-        done  
-    fi
-    echo $result
-    return 0
+# md5
+sxMd5sum() {
+    echo -n "${1}" | md5sum | cut -d ' ' -f1
 }
 
-sxGetSecret() {
-    # 加密密钥
-    secret_hex=`sinMd5 ${SFSSHX_SECRET_KEY}`
-    secret_hex=`echo -n ${secret_hex}| tr a-z A-Z`
-    secret=`echo "ibase=16; ${secret_hex}" | bc`
-    echo $secret
+# 字符串 -> 16进制 -> 10进制
+sxStrHexDec() {
+    hex=`sxMd5sum ${1}`
+    hex=`echo -n ${hex}| tr a-z A-Z`
+    dec=`echo "ibase=16; ${hex}" | bc`
+    echo $dec
 }
 
 sinEncode() {
 
-    # 加密账号密码
-    params=`echo "${1}" |base64`"@"`echo "${2}" |base64`"@"`echo "${3}" |base64`"@"`echo "${4}" |base64`
+    # 获取10进制密钥
+    secret=`sxStrHexDec $2`
 
     # 转16进制 添加-n 避免换行符转 0x0A
-    hex=`echo -n "${params}" | xxd -ps -u -c 5000`
+    hex=`echo -n "${1}" | xxd -ps -u -c 5000`
     
     # 转10进制
     info=`echo "ibase=16; ${hex}" | bc`
-
-    # 获取10进制密钥
-    secret=sxGetSecret
 
     # 密文与密钥相加
     result=`echo "ibase=10;obase=10;${secret}+${info}"|bc`
@@ -62,10 +50,15 @@ sinEncode() {
 }
 
 sinDecode() {
-    content=$1
 
     # 获取10进制密钥
-    secret=sxGetSecret
+    secret=`sxStrHexDec $2`
+
+    # 替换特殊字符
+    content=$1
+    content=${content##*v}
+    content=${content//' '/''}
+    content=${content//'\'/''}
 
     # 加密内容减密钥得到十进制密文
     private=`echo "ibase=10;obase=10; ${content}-${secret}"|bc`
@@ -75,6 +68,7 @@ sinDecode() {
 
     # 转为原字符串
     base=`echo $base | xxd -ps -u -r`
+
     echo $base
     return 0
 }
@@ -114,15 +108,15 @@ sinAddSSH() {
     stty echo
     echo ''
 
+    # 拼接加密串
+    params=`echo "${host}" |base64`"@"`echo "${port}" |base64`"@"`echo "${user}" |base64`"@"`echo "${password}" |base64`
+    
     # 获取密文
-    result=`sinEncode $host $port $user $password`
-    if [ $? != "0" ];then  
-        echo "add fail."
-        exit 1
-    fi
+    result=`sinEncode ${params} $SFSSHX_SECRET_KEY`
 
     # 写入存储文件
     echo $result > $SFSSHX_FULL_FILE
+
     exit 0;
 }
 
@@ -132,15 +126,13 @@ sinConnectSSH() {
         exit 1
     fi
     
-    # 读文件内容 替换特殊字符
+    # 读文件内容
     content=`cat ${SFSSHX_FULL_FILE}`
-    content=${content##*v}
-    content=${content//' '/''}
-    content=${content//'\'/''}
 
     # 解密为字符串
-    base=`sinDecode ${content}`
+    base=`sinDecode ${content} ${SFSSHX_SECRET_KEY}`
 
+    # 分割字符串
     pass=`echo -n "${base}" | cut -d '@' -f4 | base64 -D`
     if [ -z "$pass" ]; then 
         echo "Has Not Password"
@@ -195,7 +187,7 @@ if [ ! -d "${SFSSHX_FOLDER_NAME}" ]; then
 fi
 
 # 文件名
-SFSSHX_FULL_FILE="${SFSSHX_FOLDER_NAME}"`sinMd5 ${SFSSHX_CONNECT_NAME}`".sx"
+SFSSHX_FULL_FILE="${SFSSHX_FOLDER_NAME}"`sxMd5sum ${SFSSHX_CONNECT_NAME}`".sx"
 
 if [ "$SFSSHX_OPERATION" == "add" ]; then
     sinAddSSH
