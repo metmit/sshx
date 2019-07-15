@@ -1,41 +1,61 @@
 package utils
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
-	"../common"
 	"os"
+	"os/exec"
+	"os/user"
+	"runtime"
+	"strings"
+	"sync"
 )
 
-//文件名
-var FileName string = ""
+type File struct {
+	FileName string
+}
 
+var once sync.Once
+var instance *File
+//Singleton File
+func GetFileInstance() *File {
+	once.Do(func() {
+		instance = new(File)
+	})
+	return instance
+}
+
+func (f *File) GetFileName(cName string) string {
+	return GetStrInstance().Md5(cName) + ".sin"
+}
 
 /**
  * 获取存储文件
  */
-func GetStoreFile(file_name string) string {
+func (f *File) GetFullName(cName string) string {
 
-	if FileName != "" {
-		return FileName
+	if f.FileName != "" {
+		return f.FileName
 	}
 
 	// 用户目录
-	home,err := Home()
+	home, err := f.Home()
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
+	
+	config := Config{}
+	path := home + config.FolderName
 
-	path := home + common.FOLDER_NAME
+	f.FileName = path + f.GetFileName(cName)
 
-	FileName = path + file_name
-
-	return FileName
+	return f.FileName
 }
 
-
 // 判断所给路径文件/文件夹是否存在
-func Exists(path string) bool {
+func (f *File) Exists(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsExist(err) {
@@ -47,7 +67,7 @@ func Exists(path string) bool {
 }
 
 // 判断所给路径是否为文件夹
-func IsDir(path string) bool {
+func (f *File) IsDir(path string) bool {
 	s, err := os.Stat(path)
 	if err != nil {
 		return false
@@ -56,6 +76,53 @@ func IsDir(path string) bool {
 }
 
 // 判断所给路径是否为文件
-func IsFile(path string) bool {
-	return !IsDir(path)
+func (f *File) IsFile(path string) bool {
+	return !f.IsDir(path)
+}
+
+func (f *File) Home() (string, error) {
+	u, err := user.Current()
+	if nil == err {
+		return u.HomeDir, nil
+	}
+
+	if "windows" == runtime.GOOS {
+		return f.homeWindows()
+	}
+
+	return f.homeUnix()
+}
+
+func (f *File) homeUnix() (string, error) {
+	if home := os.Getenv("HOME"); home != "" {
+		return home, nil
+	}
+
+	var stdout bytes.Buffer
+	cmd := exec.Command("sh", "-c", "eval echo ~$USER")
+	cmd.Stdout = &stdout
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	result := strings.TrimSpace(stdout.String())
+	if result == "" {
+		return "", errors.New("blank output when reading home directory")
+	}
+
+	return result, nil
+}
+
+func (f *File) homeWindows() (string, error) {
+	drive := os.Getenv("HOMEDRIVE")
+	path := os.Getenv("HOMEPATH")
+	home := drive + path
+	if drive == "" || path == "" {
+		home = os.Getenv("USERPROFILE")
+	}
+	if home == "" {
+		return "", errors.New("HOMEDRIVE, HOMEPATH, and USERPROFILE are blank")
+	}
+
+	return home, nil
 }

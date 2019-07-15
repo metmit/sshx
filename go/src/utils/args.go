@@ -8,30 +8,24 @@ import (
 const SSH_NAME string = "ssh"
 
 var (
-	help bool
-	version bool
+	help      bool
+	version   bool
 	operation string
-	cname string
-	secret string
+	cname     string
+	secret    string
 )
 
-
 func GetArgs() map[string]string {
-
 
 	flag.BoolVar(&help, "h", false, "show help")
 
 	flag.BoolVar(&version, "v", false, "show version")
-	flag.BoolVar(&version, "V", false, "show version")
 
 	flag.StringVar(&operation, "o", "connect", "operation:[add|create|del|delete|con|connect], default:con")
-	flag.StringVar(&operation, "operation", "connect", "operation:[add|create|del|delete|con|connect], default:con")
 
 	flag.StringVar(&cname, "n", "", "Connect name")
-	flag.StringVar(&cname, "name", "", "Connect name")
 
 	flag.StringVar(&secret, "s", "", "Connect secret")
-	flag.StringVar(&secret, "secret", "", "Connect secret")
 
 	// 改变默认的 Usage
 	flag.Usage = usage
@@ -48,6 +42,7 @@ func GetArgs() map[string]string {
 		return nil
 	}
 
+	cname = "sin"
 	for {
 		if cname != "" {
 			break;
@@ -55,6 +50,8 @@ func GetArgs() map[string]string {
 		fmt.Println("Type Connect Name: ")
 		_, _ = fmt.Scanln(&cname)
 	}
+
+	secret = "sin"
 
 	for {
 		if secret != "" {
@@ -77,10 +74,9 @@ func GetArgs() map[string]string {
 	}
 
 	result := map[string]string{
-		"name": cname,
-		"secret": secret,
+		"name":      cname,
+		"secret":    secret,
 		"operation": operation,
-
 	}
 
 	return result
@@ -92,10 +88,9 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("SYNOPSIS")
 	fmt.Println(SSH_NAME + " [-n NAME] [-s SECRET] [-o OPERATION]")
-	fmt.Println(SSH_NAME + " [-name NAME] [-secret SECRET] [-operation OPERATION]")
 	fmt.Println("")
 	fmt.Println("DESCRIPTION")
-	fmt.Println(SSH_NAME+" can save ssh host,port,user,password to local file by name & secret, quick resolve and connect to server when 'connect' operation.")
+	fmt.Println(SSH_NAME + " can save ssh host,port,user,password to local file by name & secret, quick resolve and connect to server when 'connect' operation.")
 	fmt.Println("Because of resolve depends on the name & secret, so it's safe!")
 	fmt.Println("")
 	fmt.Println("The options are as follows:")

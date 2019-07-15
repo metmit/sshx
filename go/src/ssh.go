@@ -15,13 +15,15 @@ func main() {
 		return
 	}
 
+	con := utils.Connect{Args: args}
+
 	switch args["operation"] {
 	case "create":
-		utils.SinAddSSH(args)
+		con.Add()
 	case "delete":
-		utils.SinDelSSH(args)
+		con.Del()
 	case "connect":
-		utils.SinConSSH(args)
+		con.Login()
 	default:
 		fmt.Println("Error operation!")
 	}
