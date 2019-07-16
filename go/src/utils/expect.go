@@ -14,10 +14,10 @@ type Expect struct {
 func (e *Expect) Connect(addr string, port string, user string, pass string) {
 
 	//设置环境变量
-	_ = os.Setenv("SIN_TERM_HOST", addr)
-	_ = os.Setenv("SIN_TERM_PORT", port)
-	_ = os.Setenv("SIN_TERM_USER", user)
-	_ = os.Setenv("SIN_TERM_PASS", pass)
+	_ = os.Setenv("SFSSHX_TERM_HOST", addr)
+	_ = os.Setenv("SFSSHX_TERM_PORT", port)
+	_ = os.Setenv("SFSSHX_TERM_USER", user)
+	_ = os.Setenv("SFSSHX_TERM_PASS", pass)
 
 	//生成临时文件
 	tempFile := e.createExp()
@@ -35,7 +35,7 @@ func (e *Expect) Connect(addr string, port string, user string, pass string) {
 }
 
 func (e *Expect) createExp() string {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "sinTerm-*.exp")
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "sfsshx-term-*.exp")
 	if err != nil {
 		log.Fatal("Cannot create temporary file", err)
 	}
@@ -43,10 +43,10 @@ func (e *Expect) createExp() string {
 	content := `#!` + e.cmdPath("expect") + ` -f  
 set timeout -1
 send_user " \n"
-spawn ` + e.cmdPath("ssh") + ` -o StrictHostKeyChecking=no -p $env(SIN_TERM_PORT) $env(SIN_TERM_USER)@$env(SIN_TERM_HOST);
+spawn ` + e.cmdPath("ssh") + ` -o StrictHostKeyChecking=no -p $env(SFSSHX_TERM_PORT) $env(SFSSHX_TERM_USER)@$env(SFSSHX_TERM_HOST);
 expect {
 "*yes/no" { send "yes\r"; exp_continue}
-"*password:" { send "$env(SIN_TERM_PASS)\r" }
+"*password:" { send "$env(SFSSHX_TERM_PASS)\r" }
 }
 interact`
 

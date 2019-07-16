@@ -35,7 +35,7 @@ func (f *File) GetFullName(cName string) string {
 		return ""
 	}
 
-	path := home + "/" + GetConfig().FolderName + "/"
+	path := home + "/" + GetConfig().FolderName + "/" + GetConfig().Version + "/"
 
 	f.FileName = path + f.GetFileName(cName)
 

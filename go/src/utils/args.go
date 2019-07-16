@@ -38,11 +38,10 @@ func GetArgs() map[string]string {
 	}
 
 	if version {
-		fmt.Println("1.0.0")
+		fmt.Println(GetConfig().Version)
 		return nil
 	}
 
-	cname = "sin"
 	for {
 		if cname != "" {
 			break
@@ -50,8 +49,6 @@ func GetArgs() map[string]string {
 		fmt.Println("Type Connect Name: ")
 		_, _ = fmt.Scanln(&cname)
 	}
-
-	secret = "sin"
 
 	for {
 		if secret != "" {
