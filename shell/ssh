@@ -160,16 +160,14 @@ sxConnect() {
         exp=$TMPDIR"/sfsshx-000.exp"
     fi
 
-cat>$exp<<EOF
-#!/usr/bin/expect -f
-set timeout -1
-spawn ssh -o StrictHostKeyChecking=no -p \$env(SFSSHX_SIN_PORT) \$env(SFSSHX_SIN_USER)@\$env(SFSSHX_SIN_HOST);
-expect {
-"*yes/no" { send "yes\r"; exp_continue}
-"*password:" { send "\$env(SFSSHX_SIN_PASS)\r" }
-}
-interact
-EOF
+    echo '#!/usr/bin/expect -f' > $exp
+    echo 'set timeout -1' >> $exp
+    echo 'spawn ssh -o StrictHostKeyChecking=no -p $env(SFSSHX_SIN_PORT) $env(SFSSHX_SIN_USER)@$env(SFSSHX_SIN_HOST);' >> $exp
+    echo 'expect {' >> $exp
+    echo '"*yes/no" { send "yes\r"; exp_continue}' >> $exp
+    echo '"*password:" { send "$env(SFSSHX_SIN_PASS)\r" }' >> $exp
+    echo '}' >> $exp
+    echo 'interact' >> $exp
 
     # 连接
     export SFSSHX_SIN_HOST=$host && export SFSSHX_SIN_PORT=$port \
