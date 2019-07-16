@@ -45,7 +45,7 @@ func GetArgs() map[string]string {
 	cname = "sin"
 	for {
 		if cname != "" {
-			break;
+			break
 		}
 		fmt.Println("Type Connect Name: ")
 		_, _ = fmt.Scanln(&cname)
@@ -55,7 +55,7 @@ func GetArgs() map[string]string {
 
 	for {
 		if secret != "" {
-			break;
+			break
 		}
 		fmt.Println("Type Connect Secret: ")
 		_, _ = fmt.Scanln(&secret)

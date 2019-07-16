@@ -5,21 +5,12 @@ import (
 	"encoding/hex"
 	"math/big"
 	"strings"
-	"sync"
 )
 
 type Str struct {
 }
 
-var strOnce sync.Once
-var strInstance *Str
-//Singleton Str
-func GetStrInstance() *Str {
-	strOnce.Do(func() {
-		strInstance = new(Str)
-	})
-	return strInstance
-}
+
 
 //md5
 func (s *Str) Md5(str string) string {

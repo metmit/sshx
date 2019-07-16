@@ -9,25 +9,14 @@ import (
 	"os/user"
 	"runtime"
 	"strings"
-	"sync"
 )
 
 type File struct {
 	FileName string
 }
 
-var once sync.Once
-var instance *File
-//Singleton File
-func GetFileInstance() *File {
-	once.Do(func() {
-		instance = new(File)
-	})
-	return instance
-}
-
 func (f *File) GetFileName(cName string) string {
-	return GetStrInstance().Md5(cName) + ".sin"
+	return GetStrInstance().Md5(cName) + ".sx"
 }
 
 /**
@@ -45,9 +34,8 @@ func (f *File) GetFullName(cName string) string {
 		fmt.Println(err)
 		return ""
 	}
-	
-	config := Config{}
-	path := home + config.FolderName
+
+	path := home + "/" + GetConfig().FolderName + "/"
 
 	f.FileName = path + f.GetFileName(cName)
 

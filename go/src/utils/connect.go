@@ -21,7 +21,6 @@ func (c *Connect) Add() {
 	// 如果文件已存在
 	if f.Exists(fileName) {
 		var rewrite string
-		fmt.Println("文件已存在")
 		fmt.Println(c.Args["name"] + "的文件已存在，是否覆盖[Y]: ")
 		_, _ = fmt.Scanln(&rewrite)
 		if rewrite == "" {
@@ -42,9 +41,8 @@ func (c *Connect) Add() {
 	for {
 		fmt.Println("host: ")
 		_, _ = fmt.Scanln(&host)
-
 		if host != "" {
-			break;
+			break
 		}
 	}
 
@@ -56,7 +54,6 @@ func (c *Connect) Add() {
 
 	fmt.Println("user[root]: ")
 	_, _ = fmt.Scanln(&user)
-
 	if user == "" {
 		user = "root"
 	}
@@ -64,9 +61,8 @@ func (c *Connect) Add() {
 	for {
 		fmt.Println("password: ")
 		_, _ = fmt.Scanln(&pass)
-
 		if pass != "" {
-			break;
+			break
 		}
 	}
 
@@ -80,18 +76,14 @@ func (c *Connect) Add() {
 
 	result := s.Encode(params, c.Args["secret"])
 	if result == "" {
-		fmt.Println("Add fail!")
+		fmt.Println("加密失败!")
 		return
 	}
 
-	config := Config{}
-	result = "v" + config.Version + "v" + result
-
-	fmt.Println(result)
-	fmt.Println(fileName)
+	result = "v" + GetConfig().Version + "v" + result
 
 	if ioutil.WriteFile(fileName, []byte(result), 0644) != nil {
-		fmt.Println("Write file fail!")
+		fmt.Println("配置文件写入失败!")
 	}
 	return
 }
@@ -104,19 +96,19 @@ func (c *Connect) Del() {
 //连接
 func (c *Connect) Login() {
 
-	f := GetFileInstance();
-	s := GetStrInstance();
+	f := GetFileInstance()
+	s := GetStrInstance()
 	fileName := f.GetFullName(c.Args["name"])
 
 	// 如果文件不存在
 	if !f.Exists(fileName) {
-		fmt.Println("文件不存在")
+		fmt.Println("配置文件不存在，请先添加配置")
 		return
 	}
 
 	byteContent, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		fmt.Println("读取文件失败")
+		fmt.Println("读取配置文件失败")
 		return
 	}
 
