@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"math/big"
 	"strings"
@@ -41,8 +42,11 @@ func (s *Str) Encode(params string, secret string) string {
 	//# 获取10进制密钥
 	secretDec := s.HexToBigInt(secretHex)
 
+	//# 将10进制密钥base64后和内容为待加密内容
+	content := base64.StdEncoding.EncodeToString([]byte(secretDec.String())) + "@" + params
+
 	//字符串转16
-	infoHex := strings.ToUpper(hex.EncodeToString([]byte(params)))
+	infoHex := strings.ToUpper(hex.EncodeToString([]byte(content)))
 	//# 转10进制
 	infoDec := s.HexToBigInt(infoHex)
 
@@ -68,5 +72,6 @@ func (s *Str) Decode(content string, secret string) string {
 	private := contentInt.Sub(contentInt, secretDec)
 
 	//十进制转字符串
-	return strings.Replace(string(private.Bytes()), "\n", "", 1)
+	result := strings.Replace(string(private.Bytes()), "\n", "", 1)
+	return result[strings.Index(result, "@")+1:]
 }

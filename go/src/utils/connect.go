@@ -112,9 +112,9 @@ func (c *Connect) Login() {
 		return
 	}
 
-	content := strings.Replace(string(byteContent), "\n", "", 1)
-	content = strings.Replace(content, "\\ ", "", 1)
-	content = strings.Replace(content, " ", "", 1)
+	content := strings.Replace(string(byteContent), "\n", "", 20)
+	content = strings.Replace(content, "\\ ", "", 20)
+	content = strings.Replace(content, " ", "", 20)
 	content = content[strings.LastIndex(content, "v")+1:]
 
 	base := s.Decode(content, c.Args["secret"])

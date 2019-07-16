@@ -39,8 +39,11 @@ sxEncode() {
     # 获取10进制密钥
     secret=`sxStrHexDec $2`
 
+    # 将10进制密钥base64后和内容为待加密内容
+    content=`echo "${secret}" |base64`"@"${1}
+
     # 转16进制 添加-n 避免换行符转 0x0A
-    hex=`echo -n "${1}" | xxd -ps -u -c 5000`
+    hex=`echo -n "${content}" | xxd -ps -u -c 5000`
     
     # 转10进制
     info=`echo "ibase=16; ${hex}" | bc`
@@ -71,7 +74,9 @@ sxDecode() {
     # 转为原字符串
     base=`echo $base | xxd -ps -u -r`
 
-    echo $base
+    result=${base#*@}
+
+    echo $result
     return 0
 }
 
