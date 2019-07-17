@@ -133,6 +133,10 @@ sxAddConfig() {
     
     # 获取密文
     result=`sxEncode ${params} $SFSSHX_SECRET_KEY`
+    if [ $? != "0" ];then
+        echo "Encode content fail!"
+        exit 1
+    fi
     result="v${SFSSHX_VERSION}v${result}"
 
     # 写入存储文件
@@ -155,6 +159,10 @@ sxConnect() {
 
     # 解密为字符串
     base=`sxDecode ${content} ${SFSSHX_SECRET_KEY}`
+    if [ $? != "0" ];then
+        echo "Decode content fail!"
+        exit 1
+    fi
 
     # 分割字符串
     pass=`echo -n "${base}" | cut -d '@' -f4 | base64 --decode`
