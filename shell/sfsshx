@@ -176,6 +176,25 @@ sxConnect() {
     && rm -rf ${exp}
 }
 
+sxDelete() {
+    if [ ! -f "${SFSSHX_FULL_FILE}" ];then
+        echo 'File dos not exist, delete fail!'
+        exit 1
+    fi
+
+    echo -n " delete ${SFSSHX_FULL_FILE} [N|Y]: "
+    read operation
+    if [ ${#operation} -eq 0 ]; then
+        operation=N
+    fi
+
+    operation=`echo -n ${operation}| tr a-z A-Z`
+
+    if [ "$operation" == "Y" ]; then
+        rm -rf ${SFSSHX_FULL_FILE}
+    fi
+}
+
 # 获取参数
 while getopts ":n:s:o:v:h:" opt
 do
@@ -221,7 +240,7 @@ SFSSHX_FULL_FILE="${SFSSHX_FOLDER_NAME}"`sxMd5sum ${SFSSHX_CONNECT_NAME}`".sx"
 if [ "$SFSSHX_OPERATION" == "add" ]; then
     sxAddConfig
 elif [ "$SFSSHX_OPERATION" == "del" ]; then
-    echo 'del'
+    sxDelete
 elif [ "$SFSSHX_OPERATION" == "con" ]; then
     sxConnect
 else

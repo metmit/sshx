@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -84,7 +85,25 @@ func (c *Connect) Add() {
 
 //删除链接
 func (c *Connect) Del() {
+	f := GetFileInstance()
 
+	fileName := f.GetFullName(c.Args["name"])
+
+	if !f.Exists(fileName) {
+		fmt.Println("配置文件不存在，无需删除")
+		return
+	}
+
+	var rewrite string
+	fmt.Println(c.Args["name"] + "确认删除[N|Y]: ")
+	_, _ = fmt.Scanln(&rewrite)
+	if rewrite == "" {
+		rewrite = "N"
+	}
+	if strings.ToUpper(rewrite) == "Y" {
+		_ = os.Remove(fileName)
+		return
+	}
 }
 
 //连接
