@@ -5,23 +5,21 @@ import (
 	"fmt"
 )
 
-const SSH_NAME string = "ssh"
-
-var (
-	help      bool
-	version   bool
-	operation string
-	cname     string
-	secret    string
-)
-
 func GetArgs() map[string]string {
+
+	var (
+		help      bool
+		version   bool
+		operation string
+		cname     string
+		secret    string
+	)
 
 	flag.BoolVar(&help, "h", false, "show help")
 
 	flag.BoolVar(&version, "v", false, "show version")
 
-	flag.StringVar(&operation, "o", "connect", "operation:[add|create|del|delete|con|connect], default:con")
+	flag.StringVar(&operation, "o", "con", "operation:[add|del|con]")
 
 	flag.StringVar(&cname, "n", "", "Connect name")
 
@@ -81,13 +79,13 @@ func GetArgs() map[string]string {
 
 func usage() {
 	fmt.Println("NAME")
-	fmt.Println(SSH_NAME + " -- safe ssh soft.")
+	fmt.Println(GetConfig().Name + " -- safe ssh soft.")
 	fmt.Println("")
 	fmt.Println("SYNOPSIS")
-	fmt.Println(SSH_NAME + " [-n NAME] [-s SECRET] [-o OPERATION]")
+	fmt.Println(GetConfig().Name + " [-n NAME] [-s SECRET] [-o OPERATION]")
 	fmt.Println("")
 	fmt.Println("DESCRIPTION")
-	fmt.Println(SSH_NAME + " can save ssh host,port,user,password to local file by name & secret, quick resolve and connect to server when 'connect' operation.")
+	fmt.Println(GetConfig().Name + " save the encrypted content(host,port,user,password) to a local file, easy resolve and connect to server.")
 	fmt.Println("Because of resolve depends on the name & secret, so it's safe!")
 	fmt.Println("")
 	fmt.Println("The options are as follows:")

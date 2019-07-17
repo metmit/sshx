@@ -30,7 +30,7 @@ var configInstance *Config
 
 func GetConfig() *Config {
 	configOnce.Do(func() {
-		configInstance = &Config{Version: "1.1.0", FolderName: ".sfsshx"}
+		configInstance = &Config{Version: "1.1.0", FolderName: ".sfsshx", Name: "sshx"}
 	})
 	return configInstance
 }

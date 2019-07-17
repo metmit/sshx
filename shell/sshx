@@ -11,13 +11,25 @@ command -v ssh >/dev/null 2>&1 || { echo >&2 "[ssh] is required, please install.
 
 # 帮助
 usage() {
-    echo "Usage:"
-    echo "  ssh [-n connect_name] [-s secret_key] [-o operation] [-vh]"
-    echo "Description:"
-    echo "    connect_name : the global alias for this connection."
-    echo "    secret_key   : Encrypted key for this connection."
-    echo "    operation    : add,con or del"
-    exit -1
+    echo 'NAME'
+    echo 'sshx -- safe ssh soft.'
+    echo ''
+    echo 'SYNOPSIS'
+    echo 'sshx [-n NAME] [-s SECRET] [-o OPERATION]'
+    echo ''
+    echo 'DESCRIPTION'
+    echo 'sshx save the encrypted content(host,port,user,password) to a local file, easy resolve and connect to server.'
+    echo "Because of resolve depends on the name & secret, so it's safe!"
+    echo ''
+    echo 'The options are as follows:'
+    echo '  -h    show help'
+    echo '  -n string'
+    echo '        Connect name'
+    echo '  -o string'
+    echo '        operation:[add|del|con] (default con)'
+    echo '  -s string'
+    echo '        Connect secret'
+    echo '  -v    show version'
 }
 
 # md5
@@ -203,8 +215,8 @@ do
         s) SFSSHX_SECRET_KEY=$OPTARG ;;
         o) SFSSHX_OPERATION=$OPTARG ;;
         v) echo $SFSSHX_VERSION ;;
-        h) usage ;;
-        ?) usage ;;
+        h) usage && exit 0 ;;
+        ?) usage && exit 0 ;;
     esac
 done
 
