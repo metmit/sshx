@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -66,13 +65,8 @@ func (c *Connect) Add() {
 		}
 	}
 
-	//# 加密账号密码
-	host = base64.StdEncoding.EncodeToString([]byte(host))
-	port = base64.StdEncoding.EncodeToString([]byte(port))
-	user = base64.StdEncoding.EncodeToString([]byte(user))
-	pass = base64.StdEncoding.EncodeToString([]byte(pass))
 	// 拼接
-	params := host + "@" + port + "@" + user + "@" + pass + "@"
+	params := s.Base64Encode(host) + "@" + s.Base64Encode(port) + "@" + s.Base64Encode(user) + "@" + s.Base64Encode(pass) + "@"
 
 	result := s.Encode(params, c.Args["secret"])
 	if result == "" {
@@ -126,16 +120,6 @@ func (c *Connect) Login() {
 		return
 	}
 
-	host, _ := base64.StdEncoding.DecodeString(split[0])
-	port, _ := base64.StdEncoding.DecodeString(split[1])
-	user, _ := base64.StdEncoding.DecodeString(split[2])
-	pass, _ := base64.StdEncoding.DecodeString(split[3])
-
-	sHost := strings.Replace(string(host), "\n", "", 1)
-	sPort := strings.Replace(string(port), "\n", "", 1)
-	sUser := strings.Replace(string(user), "\n", "", 1)
-	sPass := strings.Replace(string(pass), "\n", "", 1)
-
 	expect := Expect{}
-	expect.Connect(sHost, sPort, sUser, sPass)
+	expect.Connect(s.Base64Decode(split[0]), s.Base64Decode(split[1]), s.Base64Decode(split[2]), s.Base64Decode(split[3]))
 }

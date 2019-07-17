@@ -11,8 +11,6 @@ import (
 type Str struct {
 }
 
-
-
 //md5
 func (s *Str) Md5(str string) string {
 	h := md5.New()
@@ -75,3 +73,13 @@ func (s *Str) Decode(content string, secret string) string {
 	result := strings.Replace(string(private.Bytes()), "\n", "", 1)
 	return result[strings.Index(result, "@")+1:]
 }
+
+func (s *Str) Base64Encode(str string) string {
+	return base64.StdEncoding.EncodeToString([]byte(str))
+}
+
+func (s *Str) Base64Decode(str string) string {
+	result, _ := base64.StdEncoding.DecodeString(str)
+	return string(result)
+}
+
