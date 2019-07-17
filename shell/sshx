@@ -229,15 +229,16 @@ do
 done
 
 # 指定连接名称
-if [ ! -n "$SFSSHX_CONNECT_NAME" ] ;then
-    echo "Has not connect name!"
-    exit 1
-fi
+while [ ${#SFSSHX_CONNECT_NAME} -eq 0 ]
+do
+    echo -n " connect name: "
+    read SFSSHX_CONNECT_NAME
+    done
 
 # 指定密钥
 while [ ${#SFSSHX_SECRET_KEY} -eq 0 ]
 do
-    echo -n " type secret: "
+    echo -n " connect secret: "
     read SFSSHX_SECRET_KEY
     done
 
