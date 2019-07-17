@@ -21,7 +21,7 @@ func (c *Connect) Add() {
 	// 如果文件已存在
 	if f.Exists(fileName) {
 		var rewrite string
-		fmt.Println(c.Args["name"] + "的文件已存在，是否覆盖[Y]: ")
+		fmt.Println(c.Args["name"] + " file already exist, rewrite?[Y]: ")
 		_, _ = fmt.Scanln(&rewrite)
 		if rewrite == "" {
 			rewrite = "Y"
@@ -71,14 +71,14 @@ func (c *Connect) Add() {
 
 	result := s.Encode(params, c.Args["secret"])
 	if result == "" {
-		fmt.Println("加密失败!")
+		fmt.Println("Encode content fail!")
 		return
 	}
 
 	result = "v" + GetConfig().Version + "v" + result
 
 	if ioutil.WriteFile(fileName, []byte(result), 0644) != nil {
-		fmt.Println("配置文件写入失败!")
+		fmt.Println("write file fail!")
 	}
 	return
 }
@@ -90,12 +90,12 @@ func (c *Connect) Del() {
 	fileName := f.GetFullName(c.Args["name"])
 
 	if !f.Exists(fileName) {
-		fmt.Println("配置文件不存在，无需删除")
+		fmt.Println("File dos not exist, delete fail!")
 		return
 	}
 
 	var rewrite string
-	fmt.Println(c.Args["name"] + "确认删除[N|Y]: ")
+	fmt.Println(c.Args["name"] + " delete ? [N|Y]: ")
 	_, _ = fmt.Scanln(&rewrite)
 	if rewrite == "" {
 		rewrite = "N"
@@ -115,13 +115,13 @@ func (c *Connect) Login() {
 
 	// 如果文件不存在
 	if !f.Exists(fileName) {
-		fmt.Println("配置文件不存在，请先添加配置")
+		fmt.Println("File dos not exist, please add!")
 		return
 	}
 
 	byteContent, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		fmt.Println("读取配置文件失败")
+		fmt.Println("Get file content fail!")
 		return
 	}
 
