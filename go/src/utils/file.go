@@ -36,6 +36,7 @@ func (f *File) GetFullName(cName string) string {
 	}
 
 	path := home + "/" + GetConfig().FolderName + "/" + GetConfig().Version + "/"
+	_ = os.MkdirAll(path, 0644)
 
 	f.FileName = path + f.GetFileName(cName)
 
