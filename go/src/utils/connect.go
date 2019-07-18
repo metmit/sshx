@@ -78,7 +78,7 @@ func (c *Connect) Add() {
 	result = "v" + GetConfig().Version + "v" + result
 
 	if ioutil.WriteFile(fileName, []byte(result), 0644) != nil {
-		fmt.Println("write file fail!")
+		fmt.Println("write " + fileName + " fail!")
 	}
 	return
 }
